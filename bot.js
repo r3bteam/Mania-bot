@@ -117,7 +117,7 @@ if(!message.member.hasPermission("ADMINISTRATOR")) {
 }
 });
 
-const adminprefix = "x";
+const adminprefix = "!";
 const devs = ['378464839753924610', '402043862480322562'];
  
 
