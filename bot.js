@@ -9,17 +9,24 @@ const fs = require('fs');
 const moment = require('moment');
 
 
-client.on('ready', function(){
-  console.log('Dragon is Online');
-  require("./antispam.js")(client, function(message){
-     message.delete().then(loloz => {
-     message.channel.send("").then(spammer => {
-     spammer.delete(2000)
-   });
-   });
-  });
+client.on('message' , message => {
+  var prefix = "!";
+  let user = message.mentions.users.first()|| client.users.get(message.content.split(' ')[1])
+  if(message.content.startsWith(prefix + 'unban')) {
+      if(!message.member.hasPermission('ADMINISTRATOR')) return message.channel.send('❌|**\`ADMINISTRATOR\`لا توجد لديك رتبة`**');
+      if(!user) return  message.channel.send(`Do this ${prefix} <@ID user> \n or \n ${prefix}unban ID user`);
+      message.guild.unban(user);
+      message.guild.owner.send(`لقد تم فك الباند عن الشخص \n ${user} \n By : <@${message.author.id}>`)
+      var embed = new Discord.RichEmbed()
+      .setThumbnail(message.author.avatarURl)
+      .setColor("RANDOM")
+      .setTitle('**●Unban** !')
+      .addField('**●User Unban :** ', `${user}` , true)
+      .addField('**●By :**' ,       ` <@${message.author.id}> ` , true)
+      .setAuthor(message.guild.name)
+      message.channel.sendEmbed(embed)
+  }
 });
-
 
 client.on("message", message => {
  if (message.content === "!help") {
@@ -32,6 +39,7 @@ client.on("message", message => {
  ══════════ஜ۩۞۩ஜ════════════  
 
    👑「اوامر ادارية」👑
+    
 
    👑!nickname 「لتغير أسم شخص ما」
  
@@ -56,7 +64,9 @@ client.on("message", message => {
    👑!deletecolors 「لحذف 137 لون」
  
    👑!ban 「لتعطي شخص باند مع السبب」
-    
+
+   👑!unban 「لفك الباند عند شخص محدد」
+   
    👑!kick 「لتعطي شخص كيك مع السبب」
     
    👑!clear 「لمسح الشات」
@@ -84,6 +94,9 @@ client.on("message", message => {
    👑!voicekick  「لطرد شخص من روم صوتي」
  
    👑!move  「لسحب الشخص الى الروم صوتي الخاص بك」
+
+   👑!move all 「لسحب جميع الاشخاص الموجودون بالرومات الصوتية أليك」
+
  
 ══════════ஜ۩۞۩ஜ════════════  
 
@@ -96,8 +109,110 @@ client.on("message", message => {
    }); 
 
 
+   client.on('message', message => {
+    if (message.content == ("!ban")) {
+               
 
-client.on("message", async message => {
+        const mmss = require('ms');
+        let reason = message.content.split(' ').slice(3).join(' ');
+        let time = message.content.split(' ')[2];
+        let guild = message.guild;
+
+        let usermention = message.mentions.users.first();
+
+        if (!message.guild.member(message.author).hasPermission('BAN_MEMBERS')) {
+            return message.reply(':lock: **You** need `BAN_MEMBERS` Permissions to execute `ban`')
+        }
+
+        if (!message.guild.member(client.user).hasPermission('BAN_MEMBERS')) {
+            return message.reply(':lock: **I** need `BAN_MEMBERS` Permissions to execute `ban`')
+        }
+
+    
+
+        if (message.mentions.users.size < 1) {
+            return message.reply('You need to mention someone to Ban them!')
+        }
+
+        if (message.author.id === usermention.id) {
+            return message.reply('You cant punish yourself :wink:')
+        }
+
+        if (!time) {
+            return message.reply(`How much time ? **Usage:**\`-ban [@mention] [1d] [Reason]\``)
+        }
+
+        if (!time.match(/[1-7][s,m,h,d,w]/g)) {
+            return message.reply('I need a valid time ! look at the Usage! right here: **Usage:**`-ban [@mention] [1m] [Reason]`')
+        }
+
+        if (!reason) {
+            return message.reply(`You must give me a reason for the ban **Usage:**\`-ban [@mention] [1d] [Reason]\``)
+        }
+
+        if (!message.guild.member(usermention).bannable) {
+            return message.reply('This member is above me in the `role chain` Can\'t ban them')
+        }
+
+        message.reply("This user has been banned form the server.");
+
+        usermention.send(`You've just got banned from ${guild.name}  \n State reason: **${reason}** \n **Disclamer**: If the ban is not timed and Permanent you may not appeal the **BAN**!`)
+        message.guild.ban(usermention, 7);
+        setTimeout(() => {
+            message.guild.unban(usermention.id);
+        }, mmss(time));
+       message.channel.send({embed: {
+            color: 3447003,
+            author: {
+              name: client.user.username,
+              icon_url: client.user.avatarURL
+            },
+            fields: [{
+                name: "Ban:",
+                value: `**Banned:** ${usermention.username}#${usermention.discriminator}\n**Moderator:** ${message.author.username} \n**Duration:** ${mmss(mmss(time), {long: true})} \n**Reason:** ${reason}`
+              }
+            ],
+            timestamp: new Date(),
+            footer: {
+              icon_url: client.user.avatarURL,
+              text: "Dragon"
+            }
+          }
+        });
+    }
+});
+
+client.on('message', message => {
+  var prefix = "!";
+  if (message.author.omar) return;
+  if (!message.content.startsWith(prefix)) return;
+  var command = message.content.split(" ")[0];
+  command = command.slice(prefix.length);
+  var args = message.content.split(" ").slice(1);
+  if (command == "kick") {
+   if(!message.channel.guild) return message.reply('** This command only for servers :x:**');
+  if(!message.guild.member(message.author).hasPermission("KICK_MEMBERS")) return message.reply("**You Don't Have ` KICK_MEMBERS ` Permission**");
+  if(!message.guild.member(client.user).hasPermission("KICK_MEMBERS")) return message.reply("**I Don't Have ` KICK_MEMBERS ` Permission**");
+  var user = message.mentions.users.first();
+  var reason = message.content.split(" ").slice(2).join(" ");
+  if (message.mentions.users.size < 1) return message.reply("**__Mention__ A Member To Kick !**");
+  if(!reason) return message.reply ("**Write A __Reason__ !**");
+  if (!message.guild.member(user).kickable) return message.reply("**Can't Kick A Higher Role Than Me !**");
+  const kickembed = new Discord.RichEmbed()
+  .setAuthor(`KICKED!`, user.displayAvatarURL)
+  .setColor("RANDOM")
+  .addField("**User:**",  '**[ ' + `${user.tag}` + ' ]**')
+  .addField("**By:**", '**[ ' + `${message.author.tag}` + ' ]**')
+  .addField("**Reason:**", '**[ ' + `${reason}` + ' ]**')
+  message.channel.send({embed : kickembed})
+  user.send(reason).then(()=>{
+message.guild.member(user).kick();
+  })
+}
+});
+
+
+   client.on("message", async message => {
 
 if(!message.member.hasPermission("ADMINISTRATOR")) {
   if(/(?:https?:\/)?discord(?:app.com\/invite|.gg)/gi.test(message.content)) {
@@ -118,7 +233,7 @@ if(!message.member.hasPermission("ADMINISTRATOR")) {
 });
 
 const adminprefix = "!";
-const devs = ['378464839753924610', '402043862480322562'];
+const devs = ['402043862480322562', '378464839753924610'];
  
 
 client.on('message', message => {
@@ -282,22 +397,27 @@ if(command === `unmute`) {
 
 });
 
-client.on("message",  message => {
+client.on('message', message => {
   var prefix = "!";
-  let args = message.content.split(' ').slice(1);
-if(message.content.startsWith(prefix + 'nickname')) {
- if (!message.member.hasPermission("MANAGE_NICKNAMES")) {
-     message.channel.send("ضع الاسم")
- } else {
-     if (!message.guild.member(client.user).hasPermission('MANAGE_NICKNAMES')) return message.reply(' :x:**للأسف ليس لدي خاصية**``MANAGE_NICKNAMES``').catch(console.error);
-     let changenick = message.mentions.users.first();
-     let username = args.slice(1).join(' ')
-     if (username.length < 1) return message.reply('ضع الاسم').catch(console.error);
-     if (message.mentions.users.size < 1) return message.author.send('You must mention a user to change their nickname. :x:').catch(console.error);
-     message.guild.member(changenick.id).setNickname(username);
-     message.channel.send("تم تغيير الاسم الى: " + changenick + "")
+
+  if(message.content.startsWith(prefix + 'rename')) {
+if(message.member.hasPermission("ADMINISTRATOR")) {
+        let args = message.content.split(' ').slice(2);
+var mentionned = message.mentions.users.first();
+  
+ if(!args){
+   return message.channel.send(":x: " + `**| Please enter a new Nick for ${mentionned}**`);
  }
-}});
+ if (!mentionned)return message.channel.send("**You Have to Mention A member :x:**")
+ message.guild.member(mentionned).setNickname(args.join(" ")).then(user => message.channel.send(`:full_moon_with_face: ${mentionned}'s' **New NickName is **` + `__${args.join(" ")}__` + "!")).catch(console.error);
+} else {
+ return message.reply(":x: " + "| You need to have the \"ADMINISTRATOR\" Permission");
+ }
+
+
+   }
+});
+
 
     client.on('message', message => {
       var prefix = "!";
@@ -374,6 +494,23 @@ if(!message.guild.member(client.user).hasPermission("MOVE_MEMBERS")) return mess
            }
         }
         });
+
+        client.on('message', message => {
+          var prefix = "!";
+          if(message.content.startsWith(prefix + 'move all')) {
+           if (!message.member.hasPermission("MOVE_MEMBERS")) return message.channel.send('**لايوجد لديك صلاحية سحب الأعضاء**');
+             if(!message.guild.member(client.user).hasPermission("MOVE_MEMBERS")) return message.reply("**لايوجد لدي صلاحية السحب**");
+          if (message.member.voiceChannel == null) return message.channel.send(`**الرجاء الدخول لروم صوتي**`)
+           var author = message.member.voiceChannelID;
+           var m = message.guild.members.filter(m=>m.voiceChannel)
+           message.guild.members.filter(m=>m.voiceChannel).forEach(m => {
+           m.setVoiceChannel(author)
+           })
+           message.channel.send(`**تم سحب جميع الأعضاء إليك**`)
+          
+          
+           }
+             });
 
 client.on("message", message => {
     var prefix = "!";
@@ -454,7 +591,6 @@ if(!message.guild.member(client.user).hasPermission("ADMINISTRATOR")) return mes
     } 
 });
 
-
     client.on('message', message => {
       var prefix = "!";
       if(message.content.startsWith(prefix + 'deafen')) {
@@ -500,6 +636,7 @@ if(!message.guild.member(client.user).hasPermission("ADMINISTRATOR")) return mes
   message.mentions.roles.forEach(role => role.members.forEach(member => undeafenMember(member)));
   }
   });
+
 
 
 
